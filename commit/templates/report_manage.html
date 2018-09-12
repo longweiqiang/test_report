@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+{% block content %}
+
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/login_action/">首页</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">测试报告</a></li>
+                    <li><a href="/guest_manage/">发送报告</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">{{user}}</a></li>
+                    <li><a href="/logout/">退出</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div class="container theme-showcase" role="main">
+
+        <!--测试报告列表-->
+        <div class="page-header" style="margin-top: 80px;">
+            <div id="navbar" class="navbar-collapse collapse" style="float:left;">
+                <form class="navbar-form" method="get" action="/search_name/">
+                    <div class="form-group">
+                        <input name="name" type="text" placeholder="报告标题" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success">搜索</button>
+                </form>
+            </div><!--/.navbar-collapse -->
+            <div "float:right;">
+            <button type="submit" class="btn btn-primary" onclick="window.location.href='/add_report/'" style="margin-top: 8px;">添加</button>
+        </div>
+    </div>
+
+    <!--发布会表单-->
+    <div class="row" >
+        <div class="col-md-6" style="width: 900px;">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>TAPD单号</th>
+                    <th>标题</th>
+                    <th>状态</th>
+                    <th>上线时间</th>
+                    <th>环境</th>
+                    <th>测试人员</th>
+                    <th>开发人员</th>
+                    <th>Project</th>
+                    <th>Comments</th>
+                    <th>新增时间</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for report in reports %}
+                    <tr>
+                        <td>{{ report.id }}</td>
+                        <td>{{ report.tapd_id }}</td>
+                        <td>{{ report.name }}</td>
+                        <td>{{ report.status }}</td>
+                        <td>{{ report.release_time  | date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ report.environment }}</td>
+                        <td>{{ report.tester }}</td>
+                        <td>{{ report.developer }}</td>
+                        <td>{{ report.project }}</td>
+                        <td>{{ report.comments }}</td>
+                        <td>{{ report.create_time  | date:"Y-m-d H:i:s" }}</td>
+                        <!--<td><a href="/sign_index/{{ event.id }}/"  target="{{ event.id }}_blank">sign</a></td>-->
+                        <!--  <td><a href="/sign_index2/{{ event.id }}/"  target="{{ event.id }}_blank">sign_web</a></td>
+                -->
+                    </tr>
+                {% endfor %}
+                {{ hint }}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+{% endblock %}
