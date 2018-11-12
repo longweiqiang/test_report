@@ -8,6 +8,7 @@
 
 from django import forms
 from commit.models import Report
+from django.contrib.admin import widgets
 
 # 添加测试报告表单
 class AddReportForm(forms.Form):
@@ -17,9 +18,9 @@ class AddReportForm(forms.Form):
     # 报告标题
     name = forms.CharField(max_length=300)
     # 状态
-    status = forms.BooleanField(required=True)
+    status = forms.BooleanField(required=False)
     # 上线时间
-    release_time = forms.DateTimeField()
+    release_time = forms.DateTimeField(widget=widgets.AdminDateWidget())
     # 环境
     environment = forms.CharField(max_length=200)
     # 测试人员
@@ -29,6 +30,6 @@ class AddReportForm(forms.Form):
     # Project
     project = forms.CharField(max_length=600)
     # Comments
-    comments = forms.CharField(max_length=1000)
-    # 创建时间(自动获取当前时间)
-    create_time = forms.DateTimeField()
+    comments = forms.CharField(max_length=1000, required=False)
+    # 是否为计划上线
+    is_plan = forms.BooleanField(required=False)

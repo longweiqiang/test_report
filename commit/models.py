@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -11,7 +12,7 @@ class Report(models.Model):
     # 报告标题
     name = models.CharField("名称", max_length=300)
     # 状态
-    status = models.BooleanField("状态")
+    status = models.BooleanField("状态", blank=True, default="")
     # 上线时间
     release_time = models.DateTimeField("上线时间")
     # 环境
@@ -23,7 +24,11 @@ class Report(models.Model):
     # Project
     project = models.CharField("Project", max_length=600)
     # Comments
-    comments = models.CharField("Comments", max_length=1000)
+    comments = models.CharField("Comments", max_length=1000, blank=True, default="")
+    # 是否为计划上线
+    is_plan = models.BooleanField("是否为计划上线", blank=True)
+    # 创建人
+    create_user = models.IntegerField("创建人")
     # 创建时间(自动获取当前时间)
     create_time = models.DateTimeField("新增时间", auto_now=True)
 
