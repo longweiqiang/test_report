@@ -38,6 +38,7 @@ def login(request):
 
             # 将 session 信息记录到浏览器
             request.session['user'] = username
+            # print(request.session['user'])
 
             users = User.objects.filter(username=username)
             data = []
@@ -56,6 +57,13 @@ def login(request):
         return JsonResponse({"status":100, "message":"请求方式有误"})
 
 
+# 退出接口
+def logout(request):
+    auth.logout(request)
+    return JsonResponse({"status": 200, "message": "退出成功"})
+
+
+
 def get_report_list(request):
     """
     获取报告列表
@@ -65,12 +73,13 @@ def get_report_list(request):
     if request.method == "POST":
         user_id = request.POST.get('user_id', '')
         pageNum = request.POST.get('pageNum', '')
+        numPerPage = request.POST.get('numPerPage', '')
 
 
         # 查询所有发布会
         reports = Report.objects.filter(create_user=user_id)
 
-        paginator = Paginator(reports, 2)
+        paginator = Paginator(reports, numPerPage)
         # page = request.GET.get('page')
         try:
             contacts = paginator.page(pageNum)
@@ -85,13 +94,38 @@ def get_report_list(request):
         report_list = []
 
         for report in contacts:
-            report_list.append(model_to_dict(report))
+            # report_list.append(model_to_dict(report))
+            report_dict = {
+                "id": report.id,
+                "tapd_id": report.tapd_id,
+                "name": report.name,
+                "status": report.status,
+                "release_time": report.release_time,
+                "environment": report.environment,
+                "tester": report.tester,
+                "developer": report.developer,
+                "project": report.project,
+                "comments": report.comments,
+                "is_plan": report.is_plan,
+                "create_time": report.create_time,
+                "create_user": report.create_user
+            }
 
-        print(report_list)
+            # 将字典添加到数组中
+            report_list.append(report_dict)
+            print(report_list)
+        total = len(reports)
 
-        data = {"status":200, "message":"请求成功", "data":report_list}
+        data = {"status": 200, "message": "请求成功", "total": total, "data": report_list}
 
-        return JsonResponse(data)
+        response = JsonResponse(data)
+        # response["Access-Control-Allow-Origin"] = "*"
+        # response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        # response["Access-Control-Max-Age"] = "1000"
+        # response["Access-Control-Allow-Headers"] = "*"
+
+        return response
+
     else:
         return JsonResponse({"status":100, "message":"请求方式有误"})
 
