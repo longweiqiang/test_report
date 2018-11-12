@@ -130,7 +130,7 @@ def get_report_list(request):
         return JsonResponse({"status":100, "message":"请求方式有误"})
 
 
-def add_report_list(requset):
+def add_report(requset):
     if requset.method == "POST":
         # # 获取前端以form表单方式传的参数
         # name = requset.POST.get("name", "")
@@ -179,7 +179,7 @@ def add_report_list(requset):
         return JsonResponse({"status":100, "message":"请求方式有误"})
 
 
-def edit_report_list(requset):
+def edit_report(requset):
     if requset.method == "POST":
         # # 获取前端以form表单方式传的参数
         # name = requset.POST.get("name", "")
@@ -192,7 +192,7 @@ def edit_report_list(requset):
         # 获取前端以json方式传的参数
         report_dict = json.loads(requset.body)
 
-        id = report_dict["id"]
+        report_id = report_dict["id"]
         tapd_id = report_dict["tapd_id"]
         name = report_dict["name"]
         status = report_dict["status"]
@@ -203,12 +203,18 @@ def edit_report_list(requset):
         project = report_dict["project"]
         comments = report_dict["comments"]
         is_plan = report_dict["is_plan"]
+        create_user = report_dict["create_user"]
+
+        create_user = User.objects.filter(username=create_user)
+        get_user = None
+        for user in create_user:
+            get_user = user.id
 
         try:
-            # 新增一条发布会信息
-            Report.objects.update(id=id, tapd_id=tapd_id, name=name, status=status, release_time=release_time,
+            # 更新测试日报
+            Report.objects.filter(id=report_id).update(tapd_id=tapd_id, name=name, status=status, release_time=release_time,
                                   environment=environment, tester=tester, developer=developer, project=project,
-                                  comments=comments, is_plan=is_plan)
+                                  comments=comments, is_plan=is_plan, create_user=get_user)
         except ValidationError:
             # 对入参的时间格式进行校验，如格式有误，则抛出相应的错误
             error = "日期格式错误, 请参照:YYYY-MM-DD HH:MM:SS"
