@@ -10,6 +10,7 @@ import json
 
 import time
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
 from commit.models import Report
 from django.forms.models import model_to_dict
@@ -61,14 +62,29 @@ def get_report_list(request):
     :param request:
     :return:
     """
-    if request.method == "GET":
+    if request.method == "POST":
+        user_id = request.POST.get('user_id', '')
+        pageNum = request.POST.get('pageNum', '')
+
 
         # 查询所有发布会
-        reports = Report.objects.all()
+        reports = Report.objects.filter(create_user=user_id)
+
+        paginator = Paginator(reports, 2)
+        # page = request.GET.get('page')
+        try:
+            contacts = paginator.page(pageNum)
+        except PageNotAnInteger:
+            # 如果page不是整型，或为None，取第一页
+            contacts = paginator.page(1)
+        except EmptyPage:
+            # 如果页数超出查询范围，取最后一页
+            contacts = paginator.page(paginator.num_pages)
+
 
         report_list = []
 
-        for report in reports:
+        for report in contacts:
             report_list.append(model_to_dict(report))
 
         print(report_list)
