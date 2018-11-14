@@ -283,7 +283,7 @@
             var data = $(this).data(),
                 inlineOptions = data.inlineFormset,
                 selector;
-            switch(data.inlineType) {
+            switch(data.inlinetype) {
             case "stacked":
                 selector = inlineOptions.name + "-group .inline-related";
                 $(selector).stackedFormset(selector, inlineOptions.options);

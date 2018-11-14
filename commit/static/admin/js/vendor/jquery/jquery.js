@@ -77,7 +77,7 @@ var isFunction = function isFunction( obj ) {
       // In some browsers, typeof returns "function" for HTML <object> elements
       // (i.e., `typeof document.createElement( "object" ) === "function"`).
       // We don't want to classify *any* DOM node as a function.
-      return typeof obj === "function" && typeof obj.nodeType !== "number";
+      return typeof obj === "function" && typeof obj.nodetype !== "number";
   };
 
 
@@ -112,7 +112,7 @@ var isWindow = function isWindow( obj ) {
 	}
 
 
-function toType( obj ) {
+function totype( obj ) {
 	if ( obj == null ) {
 		return obj + "";
 	}
@@ -487,7 +487,7 @@ function isArrayLike( obj ) {
 	// hasOwn isn't used here due to false negatives
 	// regarding Nodelist length in IE
 	var length = !!obj && "length" in obj && obj.length,
-		type = toType( obj );
+		type = totype( obj );
 
 	if ( isFunction( obj ) || isWindow( obj ) ) {
 		return false;
@@ -691,7 +691,7 @@ try {
 	);
 	// Support: Android<4.0
 	// Detect silently failing push.apply
-	arr[ preferredDoc.childNodes.length ].nodeType;
+	arr[ preferredDoc.childNodes.length ].nodetype;
 } catch ( e ) {
 	push = { apply: arr.length ?
 
@@ -716,14 +716,14 @@ function Sizzle( selector, context, results, seed ) {
 	var m, i, elem, nid, match, groups, newSelector,
 		newContext = context && context.ownerDocument,
 
-		// nodeType defaults to 9, since context defaults to document
-		nodeType = context ? context.nodeType : 9;
+		// nodetype defaults to 9, since context defaults to document
+		nodetype = context ? context.nodetype : 9;
 
 	results = results || [];
 
 	// Return early from calls with invalid selector or context
 	if ( typeof selector !== "string" || !selector ||
-		nodeType !== 1 && nodeType !== 9 && nodeType !== 11 ) {
+		nodetype !== 1 && nodetype !== 9 && nodetype !== 11 ) {
 
 		return results;
 	}
@@ -740,13 +740,13 @@ function Sizzle( selector, context, results, seed ) {
 
 			// If the selector is sufficiently simple, try using a "get*By*" DOM method
 			// (excepting DocumentFragment context, where the methods don't exist)
-			if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
+			if ( nodetype !== 11 && (match = rquickExpr.exec( selector )) ) {
 
 				// ID selector
 				if ( (m = match[1]) ) {
 
 					// Document context
-					if ( nodeType === 9 ) {
+					if ( nodetype === 9 ) {
 						if ( (elem = context.getElementById( m )) ) {
 
 							// Support: IE, Opera, Webkit
@@ -775,7 +775,7 @@ function Sizzle( selector, context, results, seed ) {
 						}
 					}
 
-				// Type selector
+				// type selector
 				} else if ( match[2] ) {
 					push.apply( results, context.getElementsByTagName( selector ) );
 					return results;
@@ -794,7 +794,7 @@ function Sizzle( selector, context, results, seed ) {
 				!compilerCache[ selector + " " ] &&
 				(!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
 
-				if ( nodeType !== 1 ) {
+				if ( nodetype !== 1 ) {
 					newContext = context;
 					newSelector = selector;
 
@@ -917,7 +917,7 @@ function addHandle( attrs, handler ) {
  */
 function siblingCheck( a, b ) {
 	var cur = b && a,
-		diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
+		diff = cur && a.nodetype === 1 && b.nodetype === 1 &&
 			a.sourceIndex - b.sourceIndex;
 
 	// Use IE sourceIndex if available on both nodes
@@ -1071,7 +1071,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 		doc = node ? node.ownerDocument || node : preferredDoc;
 
 	// Return early if doc is invalid or already selected
-	if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
+	if ( doc === document || doc.nodetype !== 9 || !doc.documentElement ) {
 		return document;
 	}
 
@@ -1204,7 +1204,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 			// Filter out possible comments
 			if ( tag === "*" ) {
 				while ( (elem = results[i++]) ) {
-					if ( elem.nodeType === 1 ) {
+					if ( elem.nodetype === 1 ) {
 						tmp.push( elem );
 					}
 				}
@@ -1348,9 +1348,9 @@ setDocument = Sizzle.setDocument = function( node ) {
 	// As in, an element does not contain itself
 	contains = hasCompare || rnative.test( docElem.contains ) ?
 		function( a, b ) {
-			var adown = a.nodeType === 9 ? a.documentElement : a,
+			var adown = a.nodetype === 9 ? a.documentElement : a,
 				bup = b && b.parentNode;
-			return a === bup || !!( bup && bup.nodeType === 1 && (
+			return a === bup || !!( bup && bup.nodetype === 1 && (
 				adown.contains ?
 					adown.contains( bup ) :
 					a.compareDocumentPosition && a.compareDocumentPosition( bup ) & 16
@@ -1495,7 +1495,7 @@ Sizzle.matchesSelector = function( elem, expr ) {
 			if ( ret || support.disconnectedMatch ||
 					// As well, disconnected nodes are said to be in a document
 					// fragment in IE 9
-					elem.document && elem.document.nodeType !== 11 ) {
+					elem.document && elem.document.nodetype !== 11 ) {
 				return ret;
 			}
 		} catch (e) {}
@@ -1582,15 +1582,15 @@ getText = Sizzle.getText = function( elem ) {
 	var node,
 		ret = "",
 		i = 0,
-		nodeType = elem.nodeType;
+		nodetype = elem.nodetype;
 
-	if ( !nodeType ) {
-		// If no nodeType, this is expected to be an array
+	if ( !nodetype ) {
+		// If no nodetype, this is expected to be an array
 		while ( (node = elem[i++]) ) {
 			// Do not traverse comment nodes
 			ret += getText( node );
 		}
-	} else if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+	} else if ( nodetype === 1 || nodetype === 9 || nodetype === 11 ) {
 		// Use textContent for elements
 		// innerText usage removed for consistency of new lines (jQuery #11153)
 		if ( typeof elem.textContent === "string" ) {
@@ -1601,7 +1601,7 @@ getText = Sizzle.getText = function( elem ) {
 				ret += getText( elem );
 			}
 		}
-	} else if ( nodeType === 3 || nodeType === 4 ) {
+	} else if ( nodetype === 3 || nodetype === 4 ) {
 		return elem.nodeValue;
 	}
 	// Do not include comment or processing instruction nodes
@@ -1752,7 +1752,7 @@ Expr = Sizzle.selectors = {
 		"CHILD": function( type, what, argument, first, last ) {
 			var simple = type.slice( 0, 3 ) !== "nth",
 				forward = type.slice( -4 ) !== "last",
-				ofType = what === "of-type";
+				oftype = what === "of-type";
 
 			return first === 1 && last === 0 ?
 
@@ -1765,8 +1765,8 @@ Expr = Sizzle.selectors = {
 					var cache, uniqueCache, outerCache, node, nodeIndex, start,
 						dir = simple !== forward ? "nextSibling" : "previousSibling",
 						parent = elem.parentNode,
-						name = ofType && elem.nodeName.toLowerCase(),
-						useCache = !xml && !ofType,
+						name = oftype && elem.nodeName.toLowerCase(),
+						useCache = !xml && !oftype,
 						diff = false;
 
 					if ( parent ) {
@@ -1776,9 +1776,9 @@ Expr = Sizzle.selectors = {
 							while ( dir ) {
 								node = elem;
 								while ( (node = node[ dir ]) ) {
-									if ( ofType ?
+									if ( oftype ?
 										node.nodeName.toLowerCase() === name :
-										node.nodeType === 1 ) {
+										node.nodetype === 1 ) {
 
 										return false;
 									}
@@ -1816,7 +1816,7 @@ Expr = Sizzle.selectors = {
 								(diff = nodeIndex = 0) || start.pop()) ) {
 
 								// When found, cache indexes on `parent` and break
-								if ( node.nodeType === 1 && ++diff && node === elem ) {
+								if ( node.nodetype === 1 && ++diff && node === elem ) {
 									uniqueCache[ type ] = [ dirruns, nodeIndex, diff ];
 									break;
 								}
@@ -1846,9 +1846,9 @@ Expr = Sizzle.selectors = {
 								while ( (node = ++nodeIndex && node && node[ dir ] ||
 									(diff = nodeIndex = 0) || start.pop()) ) {
 
-									if ( ( ofType ?
+									if ( ( oftype ?
 										node.nodeName.toLowerCase() === name :
-										node.nodeType === 1 ) &&
+										node.nodetype === 1 ) &&
 										++diff ) {
 
 										// Cache the index of each encountered element
@@ -1984,7 +1984,7 @@ Expr = Sizzle.selectors = {
 						elemLang = elemLang.toLowerCase();
 						return elemLang === lang || elemLang.indexOf( lang + "-" ) === 0;
 					}
-				} while ( (elem = elem.parentNode) && elem.nodeType === 1 );
+				} while ( (elem = elem.parentNode) && elem.nodetype === 1 );
 				return false;
 			};
 		}),
@@ -2029,9 +2029,9 @@ Expr = Sizzle.selectors = {
 			// http://www.w3.org/TR/selectors/#empty-pseudo
 			// :empty is negated by element (1) or content nodes (text: 3; cdata: 4; entity ref: 5),
 			//   but not by others (comment: 8; processing instruction: 7; etc.)
-			// nodeType < 6 works because attributes (2) do not appear as children
+			// nodetype < 6 works because attributes (2) do not appear as children
 			for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
-				if ( elem.nodeType < 6 ) {
+				if ( elem.nodetype < 6 ) {
 					return false;
 				}
 			}
@@ -2216,7 +2216,7 @@ function addCombinator( matcher, combinator, base ) {
 		// Check against closest ancestor/preceding element
 		function( elem, context, xml ) {
 			while ( (elem = elem[ dir ]) ) {
-				if ( elem.nodeType === 1 || checkNonElements ) {
+				if ( elem.nodetype === 1 || checkNonElements ) {
 					return matcher( elem, context, xml );
 				}
 			}
@@ -2231,7 +2231,7 @@ function addCombinator( matcher, combinator, base ) {
 			// We can't set arbitrary data on XML nodes, so they don't benefit from combinator caching
 			if ( xml ) {
 				while ( (elem = elem[ dir ]) ) {
-					if ( elem.nodeType === 1 || checkNonElements ) {
+					if ( elem.nodetype === 1 || checkNonElements ) {
 						if ( matcher( elem, context, xml ) ) {
 							return true;
 						}
@@ -2239,7 +2239,7 @@ function addCombinator( matcher, combinator, base ) {
 				}
 			} else {
 				while ( (elem = elem[ dir ]) ) {
-					if ( elem.nodeType === 1 || checkNonElements ) {
+					if ( elem.nodetype === 1 || checkNonElements ) {
 						outerCache = elem[ expando ] || (elem[ expando ] = {});
 
 						// Support: IE <9 only
@@ -2327,7 +2327,7 @@ function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postS
 			preexisting = results.length,
 
 			// Get initial elements from seed or context
-			elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
+			elems = seed || multipleContexts( selector || "*", context.nodetype ? [ context ] : context, [] ),
 
 			// Prefilter to get matcher input, preserving a map for seed-results synchronization
 			matcherIn = preFilter && ( seed || !selector ) ?
@@ -2422,7 +2422,7 @@ function matcherFromTokens( tokens ) {
 		}, implicitRelative, true ),
 		matchers = [ function( elem, context, xml ) {
 			var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
-				(checkContext = context).nodeType ?
+				(checkContext = context).nodetype ?
 					matchContext( elem, context, xml ) :
 					matchAnyContext( elem, context, xml ) );
 			// Avoid hanging onto element (issue #299)

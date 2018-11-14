@@ -40,6 +40,13 @@ INSTALLED_APPS = [
     'commit',
     'bootstrap3',
     'corsheaders',
+    'django_apscheduler',
+    'django_crontab',
+    'djcelery',
+]
+
+CRONJOBS = [
+    ('01 2 * * *', 'commit.core.task', '>>' + os.path.join(BASE_DIR, 'logs/crons.log'))
 ]
 
 MIDDLEWARE = [

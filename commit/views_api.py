@@ -9,15 +9,18 @@
 import json
 
 import datetime
+from time import sleep
 
+from apscheduler.scheduler import Scheduler
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import JsonResponse
-from commit.models import Report
+from django.http import JsonResponse, HttpResponse
+from commit.models import Report, Back_Config
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from django.contrib import auth
+from commit import email
 
 
 def login(request):
@@ -73,7 +76,19 @@ def get_report_list(request):
     :return:
     """
     if request.method == "POST":
-        user_id = request.POST.get('user_id', '')
+        # user_id = request.POST.get('user_id', '')
+
+        # 读取浏览器 session
+        user_session = request.session.get('user', '')
+        print(user_session)
+
+        user_id = None
+        if user_session != None:
+            users = User.objects.filter(username=user_session)
+            for user in users:
+                user_id = user.id
+
+        tapd_type = request.POST.get('tapd_type', '')
         tapd_id = request.POST.get('tapd_id', '')
         create_user = request.POST.get('create_user', '')
         start_time = request.POST.get('start_time', '')
@@ -81,17 +96,27 @@ def get_report_list(request):
         pageNum = request.POST.get('pageNum', '')
         numPerPage = request.POST.get('numPerPage', '')
 
+        if start_time:
+            start_time = start_time + ' 00:00:00'
+            print(start_time)
+            end_time = end_time + ' 23:59:59'
+            print(end_time)
+
         if user_id != '' and pageNum != '' and numPerPage != '':
 
             # 定一个字典用于保存前端发送过来的查询条件
             search_dict = dict()
             # 如果有这个值 就写入到字典中去
+            if tapd_type != '':
+                search_dict['tapd_type'] = tapd_type
             if tapd_id != '':
                 search_dict['tapd_id'] = tapd_id
             if create_user != '':
                 search_dict['create_user'] = create_user
-            if user_id != '1':
+            if user_id != 'admin':
                 search_dict['create_user'] = user_id
+            # if user_session != None:
+            #     search_dict['login_user'] = user_session
 
             if start_time == '' or end_time == '':
                 # 多条件查询 关键点在这个位置传如的字典前面一定要加上两个星号
@@ -135,6 +160,7 @@ def get_report_list(request):
 
             report_dict = {
                 "id": report.id,
+                "tapd_type": report.tapd_type,
                 "tapd_id": report.tapd_id,
                 "name": report.name,
                 "status": status,
@@ -156,7 +182,7 @@ def get_report_list(request):
             print(report_list)
         total = len(reports)
 
-        data = {"status": 200, "message": "请求成功", "total": total, "data": report_list}
+        data = {"status": 200, "message": "请求成功", "total": total, "login_user": user_session, "data": report_list}
 
         response = JsonResponse(data)
         # response["Access-Control-Allow-Origin"] = "*"
@@ -177,38 +203,51 @@ def add_report(requset):
     :return:
     """
     if requset.method == "POST":
-        # # 获取前端以form表单方式传的参数
-        # name = requset.POST.get("name", "")
-        # limit = requset.POST.get("limit", "")
-        # status = requset.POST.get("status", "")
-        # address = requset.POST.get("address", "")
-        # start_time = requset.POST.get("start_time", "")
+        # 获取前端以form表单方式传的参数
+        tapd_type = requset.POST.get("tapd_type", "")
+        tapd_id = requset.POST.get("tapd_id", "")
+        name = requset.POST.get("name", "")
+        status = requset.POST.get("status", "")
+        release_time = requset.POST.get("release_time", "")
+        # print("上线时间为：",release_time)
+        environment = requset.POST.get("environment", "")
+        tester = requset.POST.get("tester", "")
+        developer = requset.POST.get("developer", "")
+        project = requset.POST.get("project", "")
+        comments = requset.POST.get("comments", "")
+        bug_total = requset.POST.get("bug_total", "")
+        is_plan = requset.POST.get("is_plan", "")
+        # create_user = requset.POST.get("create_user", "")
+        # 读取浏览器 session
+        user_session = requset.session.get('user', '')
+        print(user_session)
 
 
-        # 获取前端以json方式传的参数
-        report_dict = json.loads(requset.body)
+        # # 获取前端以json方式传的参数
+        # report_dict = json.loads(requset.body)
+        #
+        # tapd_type = report_dict["tapd_type"]
+        # tapd_id = report_dict["tapd_id"]
+        # name = report_dict["name"]
+        # status = report_dict["status"]
+        # release_time = report_dict["release_time"]
+        # environment = report_dict["environment"]
+        # tester = report_dict["tester"]
+        # developer = report_dict["developer"]
+        # project = report_dict["project"]
+        # comments = report_dict["comments"]
+        # bug_total = report_dict["bug_total"]
+        # is_plan = report_dict["is_plan"]
+        # create_user = report_dict["create_user"]
 
-        tapd_id = report_dict["tapd_id"]
-        name = report_dict["name"]
-        status = report_dict["status"]
-        release_time = report_dict["release_time"]
-        environment = report_dict["environment"]
-        tester = report_dict["tester"]
-        developer = report_dict["developer"]
-        project = report_dict["project"]
-        comments = report_dict["comments"]
-        bug_total = report_dict["bug_total"]
-        is_plan = report_dict["is_plan"]
-        create_user = report_dict["create_user"]
-
-        create_user = User.objects.filter(username=create_user)
+        create_user = User.objects.filter(username=user_session)
         get_user = None
         for user in create_user:
             get_user = user.id
 
         try:
             # 新增一条发布会信息
-            Report.objects.create(tapd_id=tapd_id, name=name, status=status, release_time=release_time,
+            Report.objects.create(tapd_type=tapd_type, tapd_id=tapd_id, name=name, status=status, release_time=release_time,
                                   environment=environment, tester=tester, developer=developer, project=project,
                                   comments=comments, bug_total=bug_total, is_plan=is_plan, create_user=get_user)
         except ValidationError:
@@ -217,7 +256,7 @@ def add_report(requset):
             return JsonResponse({"status":103, "message":error})
 
         # 如果所有校验均通过，则创建一条发布会，并返回
-        return JsonResponse({"status":200, "message":"新增测试日报成功"})
+        return JsonResponse({"status":200, "login_user":user_session, "message":"新增测试日报成功"})
 
 
     else:
@@ -232,32 +271,45 @@ def edit_report(requset):
     :return:
     """
     if requset.method == "POST":
-        # # 获取前端以form表单方式传的参数
-        # name = requset.POST.get("name", "")
-        # limit = requset.POST.get("limit", "")
-        # status = requset.POST.get("status", "")
-        # address = requset.POST.get("address", "")
-        # start_time = requset.POST.get("start_time", "")
 
+        # 获取前端以form表单方式传的参数
+        report_id = requset.POST.get("id", "")
+        tapd_type = requset.POST.get("tapd_type", "")
+        tapd_id = requset.POST.get("tapd_id", "")
+        name = requset.POST.get("name", "")
+        status = requset.POST.get("status", "")
+        release_time = requset.POST.get("release_time", "")
+        environment = requset.POST.get("environment", "")
+        tester = requset.POST.get("tester", "")
+        developer = requset.POST.get("developer", "")
+        project = requset.POST.get("project", "")
+        comments = requset.POST.get("comments", "")
+        bug_total = requset.POST.get("bug_total", "")
+        is_plan = requset.POST.get("is_plan", "")
+        # create_user = requset.POST.get("create_user", "")
+        # 读取浏览器 session
+        user_session = requset.session.get('user', '')
+        print(user_session)
 
-        # 获取前端以json方式传的参数
-        report_dict = json.loads(requset.body)
+        # # 获取前端以json方式传的参数
+        # report_dict = json.loads(requset.body)
+        #
+        # report_id = report_dict["id"]
+        # tapd_type = report_dict["tapd_type"]
+        # tapd_id = report_dict["tapd_id"]
+        # name = report_dict["name"]
+        # status = report_dict["status"]
+        # release_time = report_dict["release_time"]
+        # environment = report_dict["environment"]
+        # tester = report_dict["tester"]
+        # developer = report_dict["developer"]
+        # project = report_dict["project"]
+        # comments = report_dict["comments"]
+        # bug_total = report_dict["bug_total"]
+        # is_plan = report_dict["is_plan"]
+        # create_user = report_dict["create_user"]
 
-        report_id = report_dict["id"]
-        tapd_id = report_dict["tapd_id"]
-        name = report_dict["name"]
-        status = report_dict["status"]
-        release_time = report_dict["release_time"]
-        environment = report_dict["environment"]
-        tester = report_dict["tester"]
-        developer = report_dict["developer"]
-        project = report_dict["project"]
-        comments = report_dict["comments"]
-        bug_total = report_dict["bug_total"]
-        is_plan = report_dict["is_plan"]
-        create_user = report_dict["create_user"]
-
-        create_user = User.objects.filter(username=create_user)
+        create_user = User.objects.filter(username=user_session)
         get_user = None
         for user in create_user:
             get_user = user.id
@@ -269,6 +321,7 @@ def edit_report(requset):
             #                       comments=comments, bug_total=bug_total, is_plan=is_plan, create_user=get_user)
             report = Report.objects.get(id=report_id)
 
+            report.tapd_type = tapd_type
             report.tapd_id = tapd_id
             report.name = name
             report.status = status
@@ -290,7 +343,7 @@ def edit_report(requset):
             return JsonResponse({"status":103, "message":error})
 
         # 如果所有校验均通过，则创建一条发布会，并返回
-        return JsonResponse({"status":200, "message":"更新测试日报成功"})
+        return JsonResponse({"status":200, "login_user":user_session, "message":"更新测试日报成功"})
 
 
     else:
@@ -338,6 +391,7 @@ def get_today_report_list(request):
 
             report_dict = {
                 "id": report.id,
+                "tapd_type": report.tapd_type,
                 "tapd_id": report.tapd_id,
                 "name": report.name,
                 "status": status,
@@ -371,5 +425,87 @@ def get_today_report_list(request):
 
     else:
         return JsonResponse({"status":100, "message":"请求方式有误"})
+
+
+def task_status(requset):
+    """
+    定时任务状态
+    :param request:
+    :return:
+    """
+    if requset.method == "POST":
+        # 获取前端以form表单方式传的参数
+        id = requset.POST.get("id", "")
+        status = requset.POST.get("status", "")
+
+        if id == '':
+            task = Back_Config.objects.create(task_status=status)
+            # 使用save()方法才能使用更新时间
+            task.save()
+        else:
+            task = Back_Config.objects.get(id=1)
+            task.task_status = status
+            # 使用save()方法才能使用更新时间
+            task.save()
+        return JsonResponse({"status": 200, "message": "成功"})
+
+    else:
+        return JsonResponse({"status":100, "message":"请求方式有误"})
+
+
+
+def hand_send_email(requset):
+    """
+    手动发送邮件
+    :param requset:
+    :return:
+    """
+    if requset.method == "POST":
+        id = requset.POST.get("id", "")
+
+        task_status = Back_Config.objects.filter(id=1)
+        for task in task_status:
+            status = task.task_status
+            # print(type(status))
+
+            if status == 1:
+                # email.mail()
+                return JsonResponse({"status": 200, "message": "邮件发送成功"})
+            else:
+                return JsonResponse({"status": 101, "message": "请先关闭自动发送邮件功能"})
+
+    else:
+        return JsonResponse({"status":100, "message":"请求方式有误"})
+
+
+
+# def task_Fun():
+#     '''
+#     这里写定时任务
+#     '''
+#     sleep(1)
+#
+#
+#
+# sched = Scheduler()
+#
+#
+# @sched.interval_schedule(seconds=6)
+# def my_task1():
+#     print('定时任务1开始\n')
+#     task_Fun()
+#     print('定时任务1结束\n')
+#
+# @sched.interval_schedule(hours=4)
+# def my_task2():
+#     print('定时任务2开始\n')
+#     sleep(1)
+#     print('定时任务2结束\n')
+#
+#
+# sched.start()
+
+
+
 
 

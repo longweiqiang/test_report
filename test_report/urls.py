@@ -15,11 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from commit import views
+from commit import views, views_api
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.login),
+    path('report_list/', views.repost_list),
+
+    # path('repost_list/', views.repost_list),
+    path('repost_list/', views_api.get_report_list),
     path('login_action/', views.login_action),
     path('report_manage/', views.report_manage),
     path('email_manage/', views.email_manage),
@@ -29,8 +33,12 @@ urlpatterns = [
     path('edit_test/', views.edit_report),
     path('sign_index/<int:id>/', views.sign_index),
     path('sign_index_action/<int:report_id>/', views.sign_index_action),
-    path('add_data/', views.add_data),
-    path('edit_data/', views.edit_data),
+    # path('add_data/', views.add_data),
+    # path('edit_data/', views.edit_data),
     path('api/', include("commit.urls")),
 
 ]
+
+
+
+

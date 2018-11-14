@@ -67,11 +67,11 @@
       var toString = {}.toString;
       var startsWith = function (search) {
         if (this == null) {
-          throw new TypeError();
+          throw new typeError();
         }
         var string = String(this);
         if (search && toString.call(search) == '[object RegExp]') {
-          throw new TypeError();
+          throw new typeError();
         }
         var stringLength = string.length;
         var searchString = String(search);
@@ -189,7 +189,7 @@
       el.dispatchEvent(event);
     } else if (el.fireEvent) { // for IE8
       event = document.createEventObject();
-      event.eventType = eventName;
+      event.eventtype = eventName;
       el.fireEvent('on' + eventName, event);
     } else {
       // fall back to jQuery.trigger
@@ -199,22 +199,22 @@
   //</editor-fold>
 
   function stringSearch(li, searchString, method, normalize) {
-    var stringTypes = [
+    var stringtypes = [
         'content',
         'subtext',
         'tokens'
       ],
       searchSuccess = false;
 
-    for (var i = 0; i < stringTypes.length; i++) {
-      var stringType = stringTypes[i],
-          string = li[stringType];
+    for (var i = 0; i < stringtypes.length; i++) {
+      var stringtype = stringtypes[i],
+          string = li[stringtype];
 
       if (string) {
         string = string.toString();
 
         // Strip HTML tags. This isn't perfect, but it's much faster than any other method
-        if (stringType === 'content') {
+        if (stringtype === 'content') {
           string = string.replace(/<[^>]+>/g, '');
         }
 
@@ -963,7 +963,7 @@
         var li = elementTemplates.li.cloneNode(false);
 
         if (content) {
-          if (content.nodeType === 1 || content.nodeType === 11) {
+          if (content.nodetype === 1 || content.nodetype === 11) {
             li.appendChild(content);
           } else {
             li.innerHTML = content;
@@ -986,7 +986,7 @@
         var a = elementTemplates.a.cloneNode(true);
 
         if (text) {
-          if (text.nodeType === 11) {
+          if (text.nodetype === 11) {
             a.appendChild(text);
           } else {
             a.insertAdjacentHTML('beforeend', text);

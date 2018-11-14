@@ -1,28 +1,168 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
-    {% load bootstrap3 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    <title>利全测试报告提交系统</title>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous"></script>
 </head>
+<style>
+    html, body, #app{
+        width: 100%;
+        height: 100%;
+    }
+    .login-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: #f7f7f7;
+    }
 
+    .ms-title {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        margin-top: -230px;
+        text-align: center;
+        font-size: 30px;
+        color: #fff;
+
+    }
+
+    .ms-login {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 300px;
+        z-index: 100;
+        margin: -150px 0 0 -190px;
+        padding: 40px;
+        border-radius: 5px;
+        background: #fff;
+    }
+
+    .login-btn {
+        text-align: center;
+    }
+
+    .login-btn button {
+        width: 100%;
+        height: 36px;
+    }
+
+    .login-wrap .logo-image {
+        display: block;
+        width: 292px;
+        height: 64px;
+        margin: 26px auto 60px;
+    }
+
+    .wrapper {
+        position: relative;
+        width:100%;
+        height:100%;
+    }
+</style>
 <body>
-<div class="container" style="width: 330px;">
-    <form class="form-signin" method="post" action="/login_action/">
-        <h2 class="form-signin-heading">利全测试报告提交系统</h2>
-        <label for="inputUsername" class="sr-only">Username</label>
-        <input name="username" type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password"  required style="
-    margin-top: 10px;">
-        <p style="color:red; margin-top: 10px;">{{error}}</p> <br>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
-        {% csrf_token %}
-    </form>
+<div id="app">
+    <div class="login-wrap">
+        <div class="wrapper">
+            <div class="ms-login">
+                <el-form :model="ruleForm" :rules="rules" ref="ruleForm" labelWidth="80px" class="demo-ruleForm">
+                    <el-form-item prop="username" label="用户名">
+                        <el-input v-model="ruleForm.username" placeholder="username"></el-input>
+                    </el-form-item>
+                    <el-form-item prop="password" label="密码">
+                        <el-input type="password" placeholder="password" v-model="ruleForm.password"
+                                  @keyup.enter.native="submitForm('ruleForm')"></el-input>
+                    </el-form-item>
+                    <div class="login-btn">
+                        <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
+                    </div>
+                </el-form>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
-
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                ruleForm: {
+                    username: '',
+                    password: '',
+                    captchaCode: ''
+                },
+                loading: false,
+                rules: {
+                    username: [
+                        {required: true, message: '请输入用户名', trigger: 'blur'}
+                    ],
+                    password: [
+                        {required: true, message: '请输入密码', trigger: 'blur'}
+                    ]
+                }
+            }
+        },
+        methods:{
+            setCookie(name,value){
+                var Days = 1;
+                var exp = new Date();
+                exp.setTime(exp.getTime() + Days*24*60*60*1000);
+                document.cookie = name + "="+ encodeURI (value) +";path=/";
+            },
+            getCookie(objName){//获取指定名称的cookie的值
+                var arrStr = document.cookie.split("; ");
+                for (var i = 0; i < arrStr.length; i++) {
+                    var temp = arrStr[i].split("=");
+                    if (temp[0] == objName){
+                        return decodeURI(temp[1]);
+                    }
+                }
+            },
+            submitForm(formName) {
+                if (this.isLoading) {
+                    this.$message({
+                        message: '请不要操作太快',
+                        center: true
+                    })
+                }
+                console.log(this.ruleForm);
+                this.ruleForm.org = 'pcweb';
+                let that = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        $.ajax({
+                            url: "http://172.19.5.53:8000/api/login/",
+                            type: "post",
+                            data: that.ruleForm,
+                            success: function(res) {
+                                if(res.status === 200){
+                                    {#that.setCookie('userName',res.data[0].user_name);#}
+                                    {#that.setCookie('userId',res.data[0].user_id);#}
+                                    {#debugger;#}
+                                   location.href = '/report_list/'
+                                }
+                            }
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false
+                    }
+                })
+            },
+        },
+        beforeMount(){
+        }
+    })
+</script>
 </html>

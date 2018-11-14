@@ -10,16 +10,20 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
 
 
-#当页面编辑新增删除后拿的全部数据，返回第一页的数据
-def get_firstPage(dataModel):
-    data_list = dataModel.objects.all()
-    paginator = Paginator(data_list, NumberColumns)
-    contacts = paginator.page(1)
-    return contacts
+# #当页面编辑新增删除后拿的全部数据，返回第一页的数据
+# def get_firstPage(dataModel):
+#     data_list = dataModel.objects.all()
+#     paginator = Paginator(data_list, NumberColumns)
+#     contacts = paginator.page(1)
+#     return contacts
 
 # 登录方法
 def login(request):
     return render(request, 'login.html')
+
+# 登录方法
+def repost_list(request):
+    return render(request, 'list.html')
 
 
 # 登录动作的处理
@@ -30,7 +34,7 @@ def login_action(request):
 
         user = auth.authenticate(username=username, password=password)
         if user is None:
-            return render(request, 'login.html', {'error': '用户名或密码错误'})
+            return render(request, 'login1.html', {'error': '用户名或密码错误'})
         else:
             auth.login(request, user)
             response = HttpResponseRedirect('/report_manage/')
@@ -41,7 +45,7 @@ def login_action(request):
             request.session['user'] = username
             return response
     else:
-        return render(request, 'login.html')
+        return render(request, 'login1.html')
 
 
 # 测试组测试报告列表
@@ -145,58 +149,92 @@ def add_report(request):
         return render(request, 'add_test.html')
 
 # 新增测试报告1
-def add_data(request):
-    if request.method == 'POST':
+# def add_data(request):
+#     if request.method == 'POST':
+#
+#         tapd_id = request.POST.get('tapd_id', '')
+#         name = request.POST.get('story_name', '')
+#         status = request.POST.get('status', '')
+#         release_time = request.POST.get('release_time', '')
+#         environment = request.POST.get('environment', '')
+#         tester = request.POST.get('tester', '')
+#         developer = request.POST.get('developer', '')
+#         project = request.POST.get('project', '')
+#         comments = request.POST.get('comments', '')
+#         is_plan = request.POST.get('is_plan', '')
+#         print(tapd_id, name, status, release_time, environment, tester, developer, project, comments, is_plan)
+#
+#         Report.objects.create(tapd_id=tapd_id, name=name, status=status, release_time=release_time,
+#                               environment=environment, tester=tester
+#                               , developer=developer, project=project, comments=comments, is_plan=is_plan)
+#         contacts=get_firstPage(Report)
+#         return render(request, "add_test1.html", {"reports": contacts})
+#     else:
+#         return render(request, 'add_test1.html')
 
-        tapd_id = request.POST.get('tapd_id', '')
-        name = request.POST.get('story_name', '')
-        status = request.POST.get('status', '')
-        release_time = request.POST.get('release_time', '')
-        environment = request.POST.get('environment', '')
-        tester = request.POST.get('tester', '')
-        developer = request.POST.get('developer', '')
-        project = request.POST.get('project', '')
-        comments = request.POST.get('comments', '')
-        is_plan = request.POST.get('is_plan', '')
-        print(tapd_id, name, status, release_time, environment, tester, developer, project, comments, is_plan)
 
-        Report.objects.create(tapd_id=tapd_id, name=name, status=status, release_time=release_time,
-                              environment=environment, tester=tester
-                              , developer=developer, project=project, comments=comments, is_plan=is_plan)
-        contacts=get_firstPage(Report)
-        return render(request, "add_test1.html", {"reports": contacts})
-    else:
-        return render(request, 'add_test1.html')
-
-
-# 编辑测试报告1
-def edit_data(request):
-    if request.method == 'POST':
-        tapd_id = request.POST.get('tapd_id', '')
-        name = request.POST.get('story_name', '')
-        status = request.POST.get('status', '')
-        release_time = request.POST.get('release_time', '')
-        environment = request.POST.get('environment', '')
-        tester = request.POST.get('tester', '')
-        developer = request.POST.get('developer', '')
-        project = request.POST.get('project', '')
-        comments = request.POST.get('comments', '')
-        is_plan = request.POST.get('is_plan', '')
-        Report.objects.create(tapd_id=tapd_id, name=name, status=status, release_time=release_time,
-                              environment=environment, tester=tester
-                              , developer=developer, project=project, comments=comments, is_plan=is_plan)
-        contacts = get_firstPage(Report)
-        return render(request, "add_test1.html", {"reports": contacts})
-    else:
-        return render(request, 'add_test1.html')
+# # 编辑测试报告1
+# def edit_data(request):
+#     if request.method == 'POST':
+#         tapd_id = request.POST.get('tapd_id', '')
+#         name = request.POST.get('story_name', '')
+#         status = request.POST.get('status', '')
+#         release_time = request.POST.get('release_time', '')
+#         environment = request.POST.get('environment', '')
+#         tester = request.POST.get('tester', '')
+#         developer = request.POST.get('developer', '')
+#         project = request.POST.get('project', '')
+#         comments = request.POST.get('comments', '')
+#         is_plan = request.POST.get('is_plan', '')
+#         Report.objects.create(tapd_id=tapd_id, name=name, status=status, release_time=release_time,
+#                               environment=environment, tester=tester
+#                               , developer=developer, project=project, comments=comments, is_plan=is_plan)
+#         # contacts = get_firstPage(Report)
+#         return render(request, "add_test1.html", {"reports": contacts})
+#     else:
+#         return render(request, 'add_test1.html')
 
 
 
 def sign_index(request, id):
     report = get_object_or_404(Report, id=id)
-    report_list = Report.objects.filter(id=id)
 
-    return render(request, "edit_test.html", {'reports':report})
+    report_id = request.POST.get('id', '')
+    tapd_type = request.POST.get("tapd_type", "")
+    tapd_id = request.POST.get("tapd_id", "")
+    name = request.POST.get("name", "")
+    status = request.POST.get("status", "")
+    release_time = request.POST.get("release_time", "")
+    environment = request.POST.get("environment", "")
+    tester = request.POST.get("tester", "")
+    developer = request.POST.get("developer", "")
+    project = request.POST.get("project", "")
+    comments = request.POST.get("comments", "")
+    bug_total = request.POST.get("bug_total", "")
+    is_plan = request.POST.get("is_plan", "")
+    create_user = request.POST.get("create_user", "")
+
+    result = Report.objects.filter(id = id)
+
+    report_ = Report.objects.get(id=id)
+
+    report_.tapd_type = tapd_type
+    report_.tapd_id = tapd_id
+    report_.name = name
+    report_.status = status
+    report_.release_time = release_time
+    report_.environment = environment
+    report_.tester = tester
+    report_.developer = developer
+    report_.project = project
+    report_.comments = comments
+    report_.bug_total = bug_total
+    report_.is_plan = is_plan
+    # report_.create_user = get_user
+    # 使用save()方法才能使用更新时间
+    report_.save()
+
+    return render(request, "edit_test.html", {'reports':report, 'hint':'签到成功!'})
 
 
 

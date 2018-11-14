@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 # 报告表
 class Report(models.Model):
 
+    # 类型
+    tapd_type = models.IntegerField("类型")
     # tapd对应单号
     tapd_id = models.IntegerField("tapd单号")
     # 报告标题
@@ -40,4 +42,13 @@ class Report(models.Model):
 
     def __str__(self):
         return self.name
+
+# 配置表
+class Back_Config(models.Model):
+    # 定时任务状态
+    task_status = models.IntegerField("定时任务状态")
+
+    def __int__(self):
+        return self.task_status
+
 

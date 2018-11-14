@@ -21,7 +21,7 @@ Options can be passed via data attributes or JavaScript. For data attributes, ap
   <thead>
   <tr>
     <th style="width: 15%;">Name</th>
-    <th style="width: 32%;">Type</th>
+    <th style="width: 32%;">type</th>
     <th style="width: 10%;">Default</th>
     <th style="width: 43%;">Description</th>
   </tr>
@@ -327,7 +327,7 @@ hide.bs.select, hidden.bs.select, show.bs.select, and shown.bs.select all have a
 <table class="table table-bordered table-striped">
   <thead>
     <tr>
-      <th>Event Type</th>
+      <th>Event type</th>
       <th>Description</th>
     </tr>
   </thead>
