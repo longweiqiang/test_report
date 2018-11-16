@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
-
+from __future__ import absolute_import
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -37,12 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'commit',
     'bootstrap3',
     'corsheaders',
     'django_apscheduler',
     'django_crontab',
     'djcelery',
+    'commit',
 ]
 
 CRONJOBS = [
@@ -177,6 +177,30 @@ CORS_ALLOW_HEADERS = (
 'x-csrftoken'
 )
 
+
+
+import djcelery
+from celery.schedules import crontab
+from datetime import timedelta
+CELERY_TIMEZONE = TIME_ZONE
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+# 下面是定时任务的设置
+CELERYBEAT_SCHEDULE = {
+    #定时任务一:　每天的10:00，执行任务(report)
+    u'生成日报表': {
+        'task': 'commit.tasks.report',
+        'schedule': crontab(minute=40, hour=17),
+        # 'schedule': 5,
+        "args": ()
+    }
+    # #定时任务三:每个月的１号的6:00启动，执行任务(back_up2)
+    # u'生成统计报表': {
+    #         'task': 'app.tasks.back_up2',
+    #         'schedule': crontab(hour=6, minute=0, day_of_month='1'),
+    #         "args": ()
+    # },
+}
 
 
 

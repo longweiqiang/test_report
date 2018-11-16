@@ -20,7 +20,7 @@ from commit.models import Report, Back_Config
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import User
 from django.contrib import auth
-from commit import email
+from commit import send_email
 
 
 def login(request):
