@@ -35,6 +35,7 @@ urlpatterns = [
     path('sign_index_action/<int:report_id>/', views.sign_index_action),
     # path('add_data/', views.add_data),
     # path('edit_data/', views.edit_data),
+    path('upload/', views.upload),
     path('api/', include("commit.urls")),
 
 ]

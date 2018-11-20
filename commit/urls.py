@@ -18,6 +18,7 @@ urlpatterns = [
     path('get_today_report_list/', views_api.get_today_report_list),
     path('task_status/', views_api.task_status),
     path('hand_send_email/', views_api.hand_send_email),
+    path('upload/', views_api.push_bug_list),
 
 ]
 

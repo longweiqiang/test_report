@@ -22,6 +22,14 @@ from django.contrib.auth.models import User
 from django.contrib import auth
 from commit import send_email
 
+import os
+import pandas as pd
+import pymysql
+import numpy as np
+import xlrd
+
+from test_report import settings
+
 
 def login(request):
     """
@@ -504,6 +512,97 @@ def hand_send_email(requset):
 #
 #
 # sched.start()
+
+def push_bug_list(request):
+    """
+    上传bug
+    :param request:
+    :return:
+    """
+    if request.method == "POST":
+        content = request.FILES.get("upload", None)
+
+        # 非空判断
+        if not content:
+            return JsonResponse({"status": 101, "message": "上传文件不能为空"})
+
+        # 判断文件类型
+        file = os.path.splitext(content.name)
+        filename, type = file
+        if type != '.xls':
+            return JsonResponse({"status": 102, "message": "上传文件类型有误,只支持.xls类型"})
+
+        position = os.path.join(settings.MEDIIA_ROOT, content.name)
+
+        # 获取上传文件的文件名，并将其存储到指定位置
+        storage = open(position, 'wb+')  # 打开存储文件
+        for chunk in content.chunks():  # 分块写入文件
+            storage.write(chunk)
+        storage.close()
+
+        book = xlrd.open_workbook(position)
+        sheet = book.sheet_by_index(0)
+        # data = xlrd.open_workbook(content.name)
+        # table = data.sheets()[0]
+        # 将数据存入数据库
+        db = pymysql.connect("localhost", "root", "123456", "test_report", use_unicode=True, charset="utf8")
+        # print(table)
+        # nrows = table.nrows #行数
+        # ncols = table.ncols #列数
+        # c1=arange(0,nrows,1)
+        # print(c1)
+
+        start = 2  # 开始的行
+        end = 8  # 结束的行
+
+        rows = end - start
+
+        list_values = []
+        for x in range(sheet.ncols):
+            values = []
+            row = sheet.row_values(x)
+            for i in range(sheet.ncols):
+                # print(value)
+                values.append(row[i])
+            list_values.append(values)
+        # print(list_values)
+        datamatrix = np.array(list_values)
+        # print(datamatrix[1:])
+        dict = datamatrix[1:]
+        for i in dict:
+            # print(i[1])
+            bug_id = i[0]
+            bug_name = i[1]
+            priority = i[2]
+            status = i[3]
+            developer = i[4]
+            tester = i[5]
+            create_time = i[6]
+            update_time = i[7]
+            # print(update_time)
+
+            sql = "insert into bug_data(bug_id, name, priority, status, developer, tester, create_time, update_time)"" \
+            ""values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (
+            bug_id, bug_name, priority, status, developer, tester, create_time, update_time)
+            try:
+                # 使用 cursor() 方法创建一个游标对象 cursor
+                cursor = db.cursor()
+                cursor.execute(sql)
+            except Exception as e:
+                # 发生错误时回滚
+                db.rollback()
+                print(str(e))
+            else:
+                db.commit()  # 事务提交
+        print('事务处理成功')
+
+
+
+        return JsonResponse({"status": 200, "message": "缺陷上传成功"})
+
+    else:
+        return JsonResponse({"status":100, "message":"请求方式有误"})
+
 
 
 

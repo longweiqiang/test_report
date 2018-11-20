@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 from django.contrib import auth
 from django.shortcuts import render, get_object_or_404
@@ -18,6 +20,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #     return contacts
 
 # 登录方法
+from test_report import settings
+
+
 def login(request):
     return render(request, 'login.html')
 
@@ -283,6 +288,24 @@ def edit_report(request):
         return render(request, "edit_test.html", {"report_obj": report_obj})
     else:
         return render(request, 'edit_test.html')
+
+
+def upload(request):
+    if request.method == 'GET':
+        return render(request,'upload.html')
+    elif request.method == 'POST':
+        content =request.FILES.get("upload", None)
+        if not content:
+            return HttpResponse("没有上传内容")
+        position = os.path.join(settings.MEDIIA_ROOT,content.name)
+        #获取上传文件的文件名，并将其存储到指定位置
+        storage = open(position,'wb+')       #打开存储文件
+        for chunk in content.chunks():       #分块写入文件
+            storage.write(chunk)
+        storage.close()                      #写入完成后关闭文件
+        return HttpResponse("上传成功")      #返回客户端信息
+    else:
+        return HttpResponseRedirect("不支持的请求方法")
 
 
 

@@ -203,4 +203,9 @@ CELERYBEAT_SCHEDULE = {
 }
 
 
+# 上传文件设置
+MEDIIA_URL = 'commit\\upload\\'
+MEDIIA_ROOT = os.path.join(BASE_DIR, 'commit\\upload\\')
+
+
 
