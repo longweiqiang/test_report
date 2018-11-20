@@ -11,6 +11,7 @@ import json
 import datetime
 from time import sleep
 
+import xlwt
 from apscheduler.scheduler import Scheduler
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -596,9 +597,57 @@ def push_bug_list(request):
                 db.commit()  # 事务提交
         print('事务处理成功')
 
+        # 获取当前时间
+        now = datetime.datetime.now()
+        # 获取今天零点
+        zeroToday = now - datetime.timedelta(hours=now.hour, minutes=now.minute, seconds=now.second,
+                                             microseconds=now.microsecond)
+        # 获取23:59:59
+        lastToday = zeroToday + datetime.timedelta(hours=23, minutes=59, seconds=59)
+
+        sql = "select bug_id,name,priority,status,developer,tester,CAST(create_time AS CHAR) AS create_time,CAST(update_time AS CHAR) AS update_time from bug_data where upload_time >= '{0}' and upload_time <= '{1}'".format(
+            str(zeroToday), str(lastToday))
+
+        # print(sql)
+        # 使用 cursor() 方法创建一个游标对象 cursor
+        cursor = db.cursor()
+        cursor.execute(sql)
+        tpRows = cursor.fetchall()
+        title = ['ID', '标题', '优先级', '状态', '开发人员', '测试人员', '创建时间', '最后修改时间']
+
+        aryRows1 = np.array(tpRows)
+
+        # list头部插入数据
+        aryRows1 = list(aryRows1)
+        aryRows1.insert(0, title)
+
+        # 新增文件
+        book = xlwt.Workbook()
+        sheet = book.add_sheet('sheet1')
+        row = 0
+        for i in aryRows1:
+            col = 0
+            for s in i:
+                sheet.write(row, col, s)
+                col += 1
+            row += 1
+
+        # 获取当天时间,格式:年-月-日
+        today = datetime.date.today()
+        # print(today)
+        today = str(today)
+
+        # 获取存储路径
+        save_path = os.path.join(settings.save_path)
+
+        # 组装文件名
+        save_file_name = save_path + today + '_buglist.xls'
+
+        book.save(save_file_name)
 
 
-        return JsonResponse({"status": 200, "message": "缺陷上传成功"})
+
+        return JsonResponse({"status": 200, "message": "操作成功"})
 
     else:
         return JsonResponse({"status":100, "message":"请求方式有误"})
