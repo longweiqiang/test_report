@@ -552,13 +552,13 @@ def push_bug_list(request):
         # c1=arange(0,nrows,1)
         # print(c1)
 
-        start = 2  # 开始的行
-        end = 8  # 结束的行
-
-        rows = end - start
+        # start = 2  # 开始的行
+        # end = 8  # 结束的行
+        #
+        # rows = end - start
 
         list_values = []
-        for x in range(sheet.ncols):
+        for x in range(sheet.nrows):
             values = []
             row = sheet.row_values(x)
             for i in range(sheet.ncols):
