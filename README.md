@@ -2,6 +2,7 @@
 
 ### 架构：Python3.7+Django2.1
 
+
 ### Windows启动定时任务命令
 
 - celery -A test_report worker  --pool=solo
