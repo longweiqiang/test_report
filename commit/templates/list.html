@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>利全测试报告提交系统</title>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="../static/element-ui/lib/theme-chalk/index.css">
+    <script
+            src="../static/jquery-3.3.1/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous"></script>
+</head>
+<style>
+    .header {
+        position: relative;
+        box-sizing: border-box;
+        width: 100%;
+        height: 70px;
+        font-size: 22px;
+        background: rgb(36, 47, 66);
+    }
+
+    .header-right {
+        float: right;
+        padding-right: 50px;
+    }
+
+    .header-user-con {
+        display: flex;
+        height: 70px;
+        align-items: center;
+    }
+
+    .btn-fullscreen {
+        transform: rotate(45deg);
+        margin-right: 5px;
+        font-size: 24px;
+    }
+
+
+
+    .btn-bell .el-icon-bell {
+        color: #fff;
+    }
+
+    .user-name {
+        margin-left: 10px;
+    }
+
+    .user-avator {
+        margin-left: 20px;
+    }
+
+    .user-avator img {
+        display: block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .el-dropdown-link {
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .el-dropdown-menu__item {
+        text-align: center;
+    }
+</style>
+<body>
+<div id="app">
+    <div class="header">
+        <div class="header-right">
+            <div class="header-user-con">
+                <el-dropdown class="user-name" trigger="click">
+                    <span class="el-dropdown-link" v-text="userName">
+                    </span>
+                    <span class="el-dropdown-link" @click="loginout">
+                        退出登录
+                    </span>
+                </el-dropdown>
+            </div>
+        </div>
+    </div>
+    <el-tabs v-model="activeName">
+        <el-tab-pane label="测试列表" name="first">
+            <el-form :inline="true" :model="reportModel" class="input-with-select">
+                <el-form-item label="TAPD单号:">
+                    <el-input v-model="reportModel.tapd_id"></el-input>
+                </el-form-item>
+                <el-form-item label="创建时间:">
+                    <el-date-picker
+                                    type="daterange"
+                                    v-model="date"
+                                    start-placeholder="开始日期"
+                                    range-separator="至"
+                                    end-placeholder="结束日期"
+                                    :editable=false
+                                    value-format="timestamp"
+                                    size="small"
+                                    style="width: 260px;"/>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="getList" size="small" >查询</el-button>
+                    <el-button type="danger" size="small" @click="resizeIt">重置</el-button>
+                    <el-button type="success" @click="dialogVisibleShow" size="small" >新增</el-button>
+                </el-form-item>
+            </el-form>
+            <el-table
+                    :data="BannerManagementList"
+                    style="width: 100%">
+                <el-table-column
+                        v-for="(column,i) in columns"
+                        :fixed="i===0"
+                        :key="column.field"
+                        :prop="column.field"
+                        :label="column.header"
+                        align="center">
+                    <template slot-scope="scope">
+                        <div v-if="column.type == 'date'" v-text="getFormatYToSRangeDate(scope.row[column.field])">
+{#                            {{ getFormatYToSRangeDate(scope.row[column.field]) }}#}
+                        </div>
+                        <div v-else-if="column.translate" v-text="column.translate[scope.row[column.field]]">
+{#                            {{ column.translate[scope.row[column.field]] }}#}
+                        </div>
+                        <div v-else v-text="scope.row[column.field]">
+{#                            {{ scope.row[column.field] }}#}
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        fixed="right"
+                        label="操作"
+                        align="center"
+                        width="160">
+                    <template slot-scope="scope">
+                        <el-button
+                                @click.native.prevent="edit(scope.row)"
+                                type="danger"
+                                size="mini" >
+                            编辑
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-dialog title="推广信息"  :visible.sync="dialogVisible" width="40%">
+                <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="140px" class="demo-ruleForm" label-position = "right">
+                    <el-form-item label="TAPD单号：" prop="tapd_id">
+                        <el-input v-model="ruleForm.tapd_id"></el-input>
+                    </el-form-item>
+                    <el-form-item label="需求标题：" prop="name">
+                        <el-input v-model="ruleForm.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="类型：" prop="tapd_type">
+                        <el-radio-group v-model="ruleForm.tapd_type">
+                            <el-radio :label="0">需求</el-radio>
+                            <el-radio :label="1">BUG</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+
+                    <el-form-item label="状态：" prop="status">
+                        <el-radio-group v-model="ruleForm.status">
+                            <el-radio :label="1">上线</el-radio>
+                            <el-radio :label="0">下线</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="上线时间：" prop="release_time">
+                        <el-date-picker v-model="ruleForm.release_time" type="datetime" :editable=false></el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="环境：" prop="environment">
+                        <el-input v-model="ruleForm.environment"></el-input>
+                    </el-form-item>
+                    <el-form-item label="测试人员：" prop="tester">
+                        <el-input v-model="ruleForm.tester"></el-input>
+                    </el-form-item>
+                    <el-form-item label="开发人员：" prop="developer">
+                        <el-input v-model="ruleForm.developer"></el-input>
+                    </el-form-item>
+                    <el-form-item label="涉及项目：" prop="project">
+                        <el-input v-model="ruleForm.project"></el-input>
+                    </el-form-item>
+                    <el-form-item label="描述：" prop="comments">
+                        <el-input v-model="ruleForm.comments"></el-input>
+                    </el-form-item>
+                    <el-form-item label="BUG数量：" prop="bug_total">
+                        <el-input v-model="ruleForm.bug_total"></el-input>
+                    </el-form-item>
+                    <el-form-item label="是否为计划上线：" prop="is_plan">
+                        <el-radio-group v-model="ruleForm.is_plan">
+                            <el-radio :label="1">是</el-radio>
+                            <el-radio :label="0">否</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                </el-form>
+                <span slot="footer" class="dialog-footer" ref="ruleForm" >
+                <el-button type="primary" @click="submitForm('ruleForm')" >确认提交</el-button>
+           </span>
+            </el-dialog>
+            <el-pagination
+                    class="page-pagination"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="1"
+                    :page-sizes="[5, 10, 20, 50]"
+                    :page-size="pageContext.pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="pageContext.total">
+            </el-pagination>
+        </el-tab-pane>
+        <el-tab-pane label="其他" name="second">其他</el-tab-pane>
+    </el-tabs>
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="../static/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="../static/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                dialogVisible: false, //弹框
+                activeName: 'first', //tab
+                BannerManagementList:[], //获取数据
+                userName: '',
+                pageContext: { // 分页信息
+                    total: 0,
+                    pageSize: 20,
+                    pageNo: 1,
+                    pageNum: 1,
+                },
+                reportModel: {}, //过滤条件
+                date: [], //日期
+                ruleForm: { //表单数据
+                    status: 1,
+                    is_plan: 1,
+                    tapd_type: 0
+                },
+                rules: {  // 表单验证
+                    tapd_id: [
+                        { required: true, message: 'TAPD单号不能为空', trigger: 'blur' },
+                    ],
+                    name: [
+                        { required: true, message: '需求标题不能为空', trigger: 'blur' },
+                    ],
+                    tapd_type: [
+                        { required: true, message: '类型不能为空', trigger: 'blur' },
+                    ],
+                    status: [
+                        { required: true, message: '状态不能为空', trigger: 'blur' },
+                    ],
+                    release_time: [
+                        { required: true, message: '上线时间不能为空', trigger: 'blur' },
+                    ],
+                    environment: [
+                        { required: true, message: '环境不能为空', trigger: 'blur' },
+                    ],
+                    tester: [
+                        { required: true, message: '测试人员不能为空', trigger: 'blur' },
+                    ],
+                    developer: [
+                        { required: true, message: '开发人员不能为空', trigger: 'blur' },
+                    ],
+                    project: [
+                        { required: true, message: '涉及项目不能为空', trigger: 'blur' },
+                    ],
+                    comments: [
+                        { required: true, message: '描述不能为空', trigger: 'blur' },
+                    ],
+                    bug_total: [
+                        { required: true, message: 'BUG数量不能为空', trigger: 'blur' },
+                    ],
+                    is_plan: [
+                        { required: true, message: '是否为计划上线不能为空', trigger: 'blur' },
+                    ],
+                },
+                columns: [
+                    {
+                        field: 'id',
+                        header: 'ID',
+                    },
+
+                    {
+                        field: 'tapd_type',
+                        header: '类型',
+                        translate: {
+                            1: 'BUG',
+                            0: '需求'
+                        }
+                    },
+                    {
+                        field: 'tapd_id',
+                        header: 'TAPD单号',
+                    },
+
+                    {
+                        field: 'name',
+                        header: '标题',
+                    },
+
+                    {
+                        field: 'status',
+                        header: '状态',
+                        translate: {
+                            1: 'pass',
+                            0: 'not pass'
+                        }
+                    },
+
+                    {
+                        field: 'release_time',
+                        header: '上线时间',
+                        type: 'date'
+                    },
+                    {
+                        field: 'environment',
+                        header: '环境',
+                    },
+                    {
+                        field: 'tester',
+                        header: '测试人员',
+                    },
+                    {
+                        field: 'developer',
+                        header: '开发人员',
+                    },
+                    {
+                        field: 'project',
+                        header: 'Project',
+                    },
+                    {
+                        field: 'comments',
+                        header: 'Comments',
+                    },
+                    {
+                        field: 'bug_total',
+                        header: 'BUG数量',
+                    },
+                    {
+                        field: 'is_plan',
+                        header: '是否为计划上线',
+                        translate: {
+                            1: '是',
+                            0: '否'
+                        }
+                    },
+                    {
+                        field: 'create_time',
+                        header: '新增时间',
+                        type: 'date'
+                    },
+                    {
+                        field: 'create_user',
+                        header: '创建人',
+                    },
+                    {
+                        field: 'update_time',
+                        header: '更新时间',
+                        type: 'date'
+                    },
+
+                ],
+            }
+        },
+        methods:{
+            submitForm(formName) {//提交
+                let that = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        that.creating();
+                    } else {
+                        console.log('error submit!!');
+                    }
+                });
+            },
+            creating(){
+                let that = this;
+                that.ruleForm.release_time = that.getFormatYToSRangeDate(that.ruleForm.release_time)
+                that.ruleForm.create_user = that.userName;
+                that.ruleForm.tapd_type = Number(that.ruleForm.tapd_type);
+                that.ruleForm.tapd_id = Number(that.ruleForm.tapd_id);
+                that.ruleForm.status = Number(that.ruleForm.status);
+                that.ruleForm.bug_total = Number(that.ruleForm.bug_total);
+                that.ruleForm.is_plan = Number(that.ruleForm.is_plan);
+                let url = '';
+                if (that.ruleForm.id) {
+                    url = 'http://172.19.5.53:8000/api/edit_report/'
+                } else {
+                    url = 'http://172.19.5.53:8000/api/add_report/'
+                }
+                $.ajax({
+                    url: url,
+                    type: "post",
+                    data: that.ruleForm,
+                    success: function(res) {
+                        if(res.status === 200){
+                            that.dialogVisible = false;
+                            that.$message.success('保存成功');
+                            that.getList();
+                        }
+                    }
+                });
+            },
+            getCookie(objName){//获取指定名称的cookie的值
+                var arrStr = document.cookie.split("; ");
+                for (var i = 0; i < arrStr.length; i++) {
+                     var temp = arrStr[i].split("=");
+                     if (temp[0] == objName){
+                         return decodeURI(temp[1]);
+                     }
+                 }
+
+            },
+             delCookie(name){
+              {#alert(1)#}
+                var date = new Date();
+                date.setTime(date.getTime() - 1);
+                document.cookie = name + "=lisi;expires=" + date.toGMTString();
+            },
+            loginout() {
+                let that = this;
+                $.ajax({
+                    url: 'http://172.19.5.53:8000/api/logout/',
+                    type: "get",
+                    date:'',
+                    success: function(res) {
+                        if(res.status === 200){
+                            that.delCookie('userName');
+                            {#that.delCookie('userId');#}
+                            location.href = '/login/'
+                        }
+                    }
+                });
+            },
+            //分页
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+                this.pageContext.pageSize = val;
+                this.getList();
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+                this.pageContext.pageNo = val;
+                this.getList();
+            },
+            getFormatYToSRangeDate(time) {
+                if (!time) {
+                    return '';
+                }
+                const Dates = new Date(time);
+                const year = Dates.getFullYear();
+                const month = ( Dates.getMonth() + 1 ) < 10 ? '0' + ( Dates.getMonth() + 1 ) : ( Dates.getMonth() + 1 );
+                const day = Dates.getDate() < 10 ? '0' + Dates.getDate() : Dates.getDate();
+                const hour = Dates.getHours() < 10 ? '0' + Dates.getHours() : Dates.getHours();
+                const minute = Dates.getMinutes() < 10 ? '0' + Dates.getMinutes() : Dates.getMinutes();
+                const second = Dates.getSeconds() < 10 ? '0' + Dates.getSeconds() : Dates.getSeconds();
+                return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+            },
+            getRangeDate(time) {
+                if (!time) {
+                    return '';
+                }
+                const Dates = new Date(time);
+                const year = Dates.getFullYear();
+                const month = ( Dates.getMonth() + 1 ) < 10 ? '0' + ( Dates.getMonth() + 1 ) : ( Dates.getMonth() + 1 );
+                const day = Dates.getDate() < 10 ? '0' + Dates.getDate() : Dates.getDate();
+                return year + '-' + month + '-' + day;
+            },
+            getList(){
+                let that = this;
+                if (that.date && that.date.length > 0) {
+                    that.reportModel.start_time = this.getRangeDate(that.date[0]);
+                    that.reportModel.end_time =  this.getRangeDate(that.date[1]);
+                } else {
+                    that.reportModel.start_time = '';
+                    that.reportModel.end_time =  '';
+                }
+                that.reportModel.pageNum = this.pageContext.pageNo;
+                that.reportModel.numPerPage = this.pageContext.pageSize;
+                that.reportModel.user_id = this.userName;
+                $.ajax({
+                    url: "http://172.19.5.53:8000/api/get_report_list/",
+                    type: "post",
+                    data: that.reportModel,
+                    success: function(res) {
+                        if(res.data){
+                            that.BannerManagementList = res.data;
+                            that.pageContext.total = res.total;
+                        }
+                    }
+                });
+            },
+            edit(row){
+                this.ruleForm = row;
+                this.dialogVisible = true;
+            },
+            dialogVisibleShow(){
+                this.ruleForm = {
+                    status: 1,
+                    is_plan: 1,
+                    tapd_type: 0
+                };
+                this.dialogVisible = true;
+            },
+            Qs(){
+                let sStr = window.location.href,
+                    params = {};
+                let pattern = /(\w+)=([^&#]*)*/g;
+                let arr = sStr.match(pattern);
+                if(arr){
+                    for(let i = 0; i < arr.length; i++){
+                        let kv = arr[i].split('=');
+                        params[kv[0]] = kv[1];
+                    }
+                }
+                return params;
+            },
+            resizeIt: function () {
+                this.reportModel = {};
+                this.date = [];
+                this.getList();
+            }
+        },
+        mounted(){
+            {#debugger;#}
+          {#alert(this.getCookie('userName'))#}
+            if (this.getCookie('userName')) {
+                this.userName = this.getCookie('userName');
+            } else {
+                location.href = '/login/'
+            }
+            this.getList()
+        }
+    })
+</script>
+</html>

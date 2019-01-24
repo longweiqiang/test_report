@@ -7,7 +7,7 @@
 # @Software: PyCharm
 
 from django.urls import path
-from commit import views_api
+from commit import views_api, tool_api_list
 
 urlpatterns = [
     path('login/', views_api.login),
@@ -19,6 +19,10 @@ urlpatterns = [
     path('task_status/', views_api.task_status),
     path('hand_send_email/', views_api.hand_send_email),
     path('upload/', views_api.push_bug_list),
+
+    # tool
+    path('get_md5/', tool_api_list.get_md5),    # md5加密接口
+    path('get_oss_img', tool_api_list.get_oss_img),    # 获取oss真实链接地址
 
 ]
 

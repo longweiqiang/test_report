@@ -5,10 +5,26 @@
 # @Site    : 
 # @File    : 1.py
 # @Software: PyCharm
-
+import datetime
 import os,django
+
+from test_report import settings
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'test_report.settings'
 django.setup()
+
+
+# 获取当天时间,格式:年-月-日
+today = datetime.date.today()
+today = str(today)
+        # print(today)
+
+# 获取存储路径
+save_path = os.path.join(settings.save_path)
+
+# 组装文件名
+save_file_name = save_path + today + '.xls'
+print(save_file_name)
 
 
 import time

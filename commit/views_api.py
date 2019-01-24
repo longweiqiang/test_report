@@ -51,8 +51,8 @@ def login(request):
             # response.set_cookie('username', username, 3600)
 
             # 将 session 信息记录到浏览器
-            request.session['user'] = username
-            # print(request.session['user'])
+            request.session['sessionid'] = username
+            print(request.session['sessionid'])
 
             users = User.objects.filter(username=username)
             data = []
@@ -188,7 +188,7 @@ def get_report_list(request):
 
             # 将字典添加到数组中
             report_list.append(report_dict)
-            print(report_list)
+            # print(report_list)
         total = len(reports)
 
         data = {"status": 200, "message": "请求成功", "total": total, "login_user": user_session, "data": report_list}
@@ -226,10 +226,10 @@ def add_report(requset):
         comments = requset.POST.get("comments", "")
         bug_total = requset.POST.get("bug_total", "")
         is_plan = requset.POST.get("is_plan", "")
-        # create_user = requset.POST.get("create_user", "")
+        create_user1 = requset.POST.get("create_user", "")
         # 读取浏览器 session
-        user_session = requset.session.get('user', '')
-        print(user_session)
+        # user_session = requset.session.get('user', '')
+        # print(user_session)
 
 
         # # 获取前端以json方式传的参数
@@ -249,7 +249,7 @@ def add_report(requset):
         # is_plan = report_dict["is_plan"]
         # create_user = report_dict["create_user"]
 
-        create_user = User.objects.filter(username=user_session)
+        create_user = User.objects.filter(username=create_user1)
         get_user = None
         for user in create_user:
             get_user = user.id
@@ -265,7 +265,7 @@ def add_report(requset):
             return JsonResponse({"status":103, "message":error})
 
         # 如果所有校验均通过，则创建一条发布会，并返回
-        return JsonResponse({"status":200, "login_user":user_session, "message":"新增测试日报成功"})
+        return JsonResponse({"status":200, "login_user":create_user1, "message":"新增测试日报成功"})
 
 
     else:
@@ -295,10 +295,10 @@ def edit_report(requset):
         comments = requset.POST.get("comments", "")
         bug_total = requset.POST.get("bug_total", "")
         is_plan = requset.POST.get("is_plan", "")
-        # create_user = requset.POST.get("create_user", "")
+        create_user1 = requset.POST.get("create_user", "")
         # 读取浏览器 session
-        user_session = requset.session.get('user', '')
-        print(user_session)
+        # user_session = requset.session.get('user', '')
+        # print(user_session)
 
         # # 获取前端以json方式传的参数
         # report_dict = json.loads(requset.body)
@@ -318,7 +318,7 @@ def edit_report(requset):
         # is_plan = report_dict["is_plan"]
         # create_user = report_dict["create_user"]
 
-        create_user = User.objects.filter(username=user_session)
+        create_user = User.objects.filter(username=create_user1)
         get_user = None
         for user in create_user:
             get_user = user.id
@@ -352,7 +352,7 @@ def edit_report(requset):
             return JsonResponse({"status":103, "message":error})
 
         # 如果所有校验均通过，则创建一条发布会，并返回
-        return JsonResponse({"status":200, "login_user":user_session, "message":"更新测试日报成功"})
+        return JsonResponse({"status":200, "login_user":create_user1, "message":"更新测试日报成功"})
 
 
     else:
@@ -533,6 +533,17 @@ def push_bug_list(request):
         if type != '.xls':
             return JsonResponse({"status": 102, "message": "上传文件类型有误,只支持.xls类型"})
 
+        file_dir = os.path.join(settings.MEDIIA_ROOT)
+        filenames = str(content)
+        for root, dirs, files in os.walk(file_dir):
+            print("文件：", files)
+            print("文件名：", filenames)
+
+            if filenames in files:
+                return JsonResponse({"status": 103, "message": "文件已存在,上传失败"})
+
+
+
         position = os.path.join(settings.MEDIIA_ROOT, content.name)
 
         # 获取上传文件的文件名，并将其存储到指定位置
@@ -597,53 +608,6 @@ def push_bug_list(request):
                 db.commit()  # 事务提交
         print('事务处理成功')
 
-        # 获取当前时间
-        now = datetime.datetime.now()
-        # 获取今天零点
-        zeroToday = now - datetime.timedelta(hours=now.hour, minutes=now.minute, seconds=now.second,
-                                             microseconds=now.microsecond)
-        # 获取23:59:59
-        lastToday = zeroToday + datetime.timedelta(hours=23, minutes=59, seconds=59)
-
-        sql = "select bug_id,name,priority,status,developer,tester,CAST(create_time AS CHAR) AS create_time,CAST(update_time AS CHAR) AS update_time from bug_data where upload_time >= '{0}' and upload_time <= '{1}'".format(
-            str(zeroToday), str(lastToday))
-
-        # print(sql)
-        # 使用 cursor() 方法创建一个游标对象 cursor
-        cursor = db.cursor()
-        cursor.execute(sql)
-        tpRows = cursor.fetchall()
-        title = ['ID', '标题', '优先级', '状态', '开发人员', '测试人员', '创建时间', '最后修改时间']
-
-        aryRows1 = np.array(tpRows)
-
-        # list头部插入数据
-        aryRows1 = list(aryRows1)
-        aryRows1.insert(0, title)
-
-        # 新增文件
-        book = xlwt.Workbook()
-        sheet = book.add_sheet('sheet1')
-        row = 0
-        for i in aryRows1:
-            col = 0
-            for s in i:
-                sheet.write(row, col, s)
-                col += 1
-            row += 1
-
-        # 获取当天时间,格式:年-月-日
-        today = datetime.date.today()
-        # print(today)
-        today = str(today)
-
-        # 获取存储路径
-        save_path = os.path.join(settings.save_path)
-
-        # 组装文件名
-        save_file_name = save_path + today + '_buglist.xls'
-
-        book.save(save_file_name)
 
 
 
